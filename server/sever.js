@@ -9,12 +9,11 @@ var app = express();
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) =>{
-
-       
+      
     var todo = new Todo({
         text: req.body.text,
         completed: true,
-        completedAt: Date.now
+        completedAt: Date.now()
     });
 
     todo.save()
@@ -22,7 +21,7 @@ app.post('/todos', (req, res) =>{
         res.send(doc);
     })
     .catch( (err) => {
-        res.status(400).send(err);
+        res.status(200).send(err);
     });
 
 });
@@ -31,3 +30,5 @@ app.post('/todos', (req, res) =>{
 app.listen(3000, () =>{
     console.log('Server started at port: 3000');
 })
+
+module.exports = {app};
