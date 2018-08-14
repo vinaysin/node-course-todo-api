@@ -21,11 +21,20 @@ app.post('/todos', (req, res) =>{
         res.send(doc);
     })
     .catch( (err) => {
-        res.status(200).send(err);
+        res.status(400).send(err);
     });
 
 });
 
+app.get('/todos', (req, res) => {
+    Todo.find()
+    .then( (todos) =>  {
+        res.send(todos);
+    })
+    .catch( (err) =>{
+        res.status(400).send(err);
+    })
+});
 
 app.listen(3000, () =>{
     console.log('Server started at port: 3000');
