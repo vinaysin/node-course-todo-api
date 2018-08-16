@@ -1,24 +1,55 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
+const jwt = require('jsonwebtoken');
+const _ = require('lodash');
 
-var User = mongoose.model('User', {
+var UserSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
         trim: true,
-        minlength: 1
-    }
+        minlength: 1,        
+        validate: {
+            validator: (value) => validator.isEmail(value),
+            message: '{VALUE} is not a valid email'
+        },
+        index: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 6
+    },
+    tokens: [{
+        access: {
+            type: String,
+            required: false
+        },
+        token: {
+            type: String,
+            required: false
+        }        
+    }]
 });
 
-// let newUser = new User({
-//     email: '  vinay@abc.com   ',
-// });
+UserSchema.methods.toJSON = function() {
+    var user = this;
+    var userObject = user.toObject();
+    return _.pick(userObject, ['_id', 'email']);
+};
 
-// newUser.save()
-// .then( (result) => {
-//     console.log(result);
-// })
-// .catch ( (err) => {
-//     console.log('Unable to save.', err);
-// });
+UserSchema.methods.generateAuthToken = function() {
+    var user = this;
+    var access = 'auth';
+    var token = jwt.sign({_id: user._id.toHexString(), access},'Vinay@123').toString();
+
+    user.tokens.push({access, token});
+    //user.tokens = user.tokens.concat([{access, token}]);
+
+    return user.save().then( () => token);
+};
+
+var User = mongoose.model('User', UserSchema);
 
 module.exports = {User};
