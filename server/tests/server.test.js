@@ -2,27 +2,12 @@ const expect = require('expect');
 const request = require('supertest');
 const {ObjectID} = require('mongodb'); 
 
-const {app} = require('./../sever');
+const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
-const todos = [{
-    _id: new ObjectID(),
-    text: '1st Todo Text'
-}, {
-    _id: new ObjectID(),
-    text: '2nd Todo Text'
-}, {
-    _id: new ObjectID(),    
-    text: '3rd Todo Text'
-}];
-
-beforeEach( (done) => {
-    Todo.remove({}).then(() => {
-        Todo.insertMany(todos)
-        .then(() => done())
-        .catch( (err) => {})
-    });
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
@@ -35,14 +20,10 @@ describe('POST /todos', () => {
             .expect( (res) => {
                 expect(res.body.text).toBe(text);
             })
-            .end( (err, res) => {
-                if (err) {
-                    return done(err);
-                }
-
+            .end( (err, res) => {                
                 Todo.find({text})
                 .then( (todos) => {
-                    expect(todos.length).toBe(1);
+                    expect(todos.length).toBe(3);
                     expect(todos[0].text).toBe(text);
                     done();
                 })
@@ -75,7 +56,7 @@ describe('GET /todos/:id', () =>{
     });
 
     it('should return 404, if todo not found', (done) => {
-        const hexID = new ObjectID().toHexString()+1;
+        const hexID = new ObjectID().toHexString();
 
         request(app)
         .get(`/todos/${hexID}`)
